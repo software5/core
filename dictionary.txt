@@ -1,4 +1,0 @@
-apple:a kind of fruit which is red
-pan:a cooker
-wind:a natural movement of air
-

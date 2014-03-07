@@ -1,276 +1,258 @@
 package core;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class Game {
+	// ÄÑ¶È
 	final static int HIGH_DIFF = 3;
 	final static int MED_DIFF = 2;
 	final static int LOW_DIFF = 1;
+
+	final static String HIGH_DICFILE = "dictionary.txt";
+	final static String MED_DICFILE = "dictionary.txt";
+	final static String LOW_DICFILE = "dictionary.txt";
+
+	// ·ÖÊı
 	final static int INIT_SCORE = 10;
 	final static int INIT_GOLD = 3;
 	final static int RIGHT_INCRE = 1;
 	final static int GOLD_INCRE = 1;
 	final static int WRONG_DECRE = 1;
 	final static int NEXTROUND_INCRE = 10;
-	
-	final static String HIGH_DICFILE = "dictionary.txt";
-	final static String MED_DICFILE = "dictionary.txt";
-	final static String LOW_DICFILE = "dictionary.txt";
-	
-	private int roundNum; //å½“å‰å…³æ•°
-	private int score;
-	private int gold;
-	private int difficulty;
-	private String saveFile;//å­˜æ¡£æ–‡ä»¶å
-	private String rankFile;//æ’è¡Œæ¦œæ–‡ä»¶å
-	private String dicFile;//è¯æ±‡æœ¬æ–‡ä»¶å
-	private Round round;
-	
-	private ArrayList<Rank> ranks;//æ’è¡Œæ¦œ
-	
-	
-	public Game(){
-		saveFile = "save.txt";
-		rankFile = "rank.txt";
-	}
-	
-	/*
-	 * å¼€å§‹æ¸¸æˆ
-	 * æ— å­˜æ¡£ - è¿”å›0
-	 * æœ‰å­˜æ¡£ - è¿”å›1
-	 * */
-	public int startGame(){
-		//åˆ¤æ–­æ˜¯å¦æœ‰å­˜æ¡£
-		try {
-			FileReader reader = new FileReader(saveFile);
-			BufferedReader bufreader = new BufferedReader(reader);
-			try {
-				String str = bufreader.readLine();//save.txtç¬¬ä¸€è¡Œå­˜æ¡£æ ¼å¼ä¸ºsave:noæˆ–save:yes
-				//å¦‚æœæ²¡æœ‰å­˜æ¡£
-				if(str.split(":")[1].equals("no")){
-					startPlay(1,INIT_SCORE,INIT_GOLD,LOW_DIFF);
-					return 0;
-				}
-				//å¦‚æœæœ‰å­˜æ¡£
-				else{
-					return 1;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		
-		return 0;
-	}
-	
-	
-	/*
-	 * è¿›å…¥ä¸‹ä¸€å…³
-	 * */
-	public void nextRound(){
-		score+=NEXTROUND_INCRE;
-		gold+=GOLD_INCRE;
-		roundNum++;
-		round = new Round(roundNum,dicFile);
-	}
-	
 
-	
-	/*
-	 * è¿™ä¸ªå­—æ¯ä¹‹å‰å·²ç»çŒœè¿‡ - è¿”å›-1ï¼ˆRPTï¼‰
-	 * çŒœå¯¹ - è¿”å›è¯¥å­—æ¯ä½ç½® 
-	 * çŒœé”™ - è¿”å›ç©º 
-	 * çŒœå¯¹å¹¶è¿‡å…³ - è¿”å›è¯¥å­—æ¯ä½ç½®å’Œä¸€ä¸ª100ï¼ˆWINï¼‰ 
-	 * çŒœé”™å¹¶å¤±è´¥ - è¿”å›-100ï¼ˆFAILï¼‰
-	 * (é»˜è®¤cæ˜¯ä¸€ä¸ªå­—æ¯ï¼Œå³é•¿åº¦ä¸º1)
-	 * */
-	
-	
+	// guess
+	final static int ERROR = -2;
 	final static int RIGHT = 99;
 	final static int RPT = -1;
+	final static int WRONG = -99;
 	final static int FAIL = -100;
 	final static int RIGHT_NEXTROUND = 100;
-	final static int WRONG = -99;
-	
+
 	final static int NEXTROUND = 101;
 	final static int WIN_RANK = 102;
 	final static int WIN_NORANK = 103;
 	final static int FAIL_RANK = -101;
-	final static int FAIL_NORANK = 102;
-	
-	public ArrayList<Integer> guess(String c){
-		ArrayList<Integer> pos = round.guess(c);
-		ArrayList<Integer> result = new ArrayList<Integer>();
-		
-		//The last number in the array is a marker
-		int marker = pos.get(pos.size()-1);
-		switch(marker){
-		//å·²ç»çŒœè¿‡è¿™ä¸ªå­—æ¯
-		case RPT:
-			break;
-		//çŒœå¯¹
-		case RIGHT:
-			score+=RIGHT_INCRE;
-			break;
-		case RIGHT_NEXTROUND:
-			//çŒœå¯¹è¿›å…¥ä¸‹ä¸€å…³
-			if(roundNum!= 8){
-				score+=RIGHT_INCRE;
-				nextRound();
-				pos.add(NEXTROUND);
-			}
-			else{
-				//çŒœå¯¹å¹¶é€šå…³å¹¶è¿›å…¥æ’è¡Œæ¦œ
-				if(canRank()){
-					score+=RIGHT_INCRE;
-					score+=NEXTROUND_INCRE;
-					pos.add(WIN_RANK);
-				}
-				//çŒœå¯¹å¹¶é€šå…³æ²¡æœ‰è¿›å…¥æ’è¡Œæ¦œ
-				else{
-					score+=RIGHT_INCRE;
-					score+=NEXTROUND_INCRE;
-					pos.add(WIN_NORANK);
-				}
-			}
-			break;
-		//çŒœé”™
-		case WRONG:
-			score-=WRONG_DECRE;
-			break;
-		case FAIL:
-			//å¤±è´¥è¿›å…¥æ’è¡Œæ¦œ
-			if(canRank()){
-				score-=WRONG_DECRE;
-				pos.add(FAIL_RANK);
-			}
-			//å¤±è´¥æ²¡æœ‰è¿›å…¥æ’è¡Œæ¦œ
-			else{
-				score-=WRONG_DECRE;
-				pos.add(FAIL_NORANK);
-			}
-			break;
-		default:
-			break;
-		}
-		
-		
-		return result;
+	final static int FAIL_NORANK = -102;
+
+	final static int ALLROUND = 3;
+
+	private int roundNum; // µ±Ç°¹ØÊı
+	private int score;
+	private int gold;
+	private int difficulty;
+	private String saveFile;// ´æµµÎÄ¼şÃû
+	private String dicFile;// ´Ê»ã±¾ÎÄ¼şÃû
+	private Round round;
+	private int status = 1;
+
+	private RankFunction rankfunc;
+	private SaveFunction savefunc;
+
+	public Game(String rf, String sf) {
+		rankfunc = new RankFunction(rf);
+		savefunc = new SaveFunction(sf);
 	}
-	
+
 	/*
-	 * æç¤º
-	 * è¿”å›æç¤ºçš„å­—æ¯å’Œä½ç½®
-	 * */
-	public CharPosition help(){
-		CharPosition cp = round.help();
-		
+	 * ¿ªÊ¼ÓÎÏ· ifCover£º true£¬²»ÅĞ¶ÏÊÇ·ñÓĞ´æµµ¡¾ÓÃ»§Ñ¡Ôñ¡°¸²¸ÇÒÔÇ°´æµµ¡±Ê±µ÷ÓÃ¡¿ ·µ»Ø0£¬¿ªÊ¼ÓÎÏ·£»
+	 * false£¬ÅĞ¶ÏÊÇ·ñÓĞ´æµµ¡¾ÓÃ»§µã»÷¡°¿ªÊ¼ÓÎÏ·¡±Ê±µ÷ÓÃ¡¿ ÎŞ´æµµ - ·µ»Ø0£¬²¢¿ªÊ¼ÓÎÏ· ÓĞ´æµµ -
+	 * ·µ»Ø1£¬¡¾½çÃæ£ºÌáĞÑÓÃ»§¡°ÊÇ·ñ¸²¸ÇÒÔÇ°´æµµ¡±¡¿
+	 */
+	public int startGame(boolean ifCover) {
+		if (ifCover == true) {
+			savefunc.saveGame("no", 0, 0, 0, 0);
+			startPlay(1, INIT_SCORE, INIT_GOLD, LOW_DIFF);
+			return 0;
+		} else {
+			// ÅĞ¶ÏÊÇ·ñÓĞ´æµµ
+			if (!savefunc.hasSave()) {
+				startPlay(1, INIT_SCORE, INIT_GOLD, LOW_DIFF);
+				return 0;
+			} else
+				return 1;
+		}
+
+	}
+
+	/*
+	 * ¼ÌĞøÓÎÏ· ÎŞ´æµµ - ·µ»Ø0¡¾½çÃæ£ºÌáĞÑÓÃ»§¡°ÎŞ´æµµ¼ÇÂ¼¡±¡¿ ÓĞ´æµµ - ·µ»Ø1£¬¿ªÊ¼ÓÎÏ·
+	 */
+	public int continueGame() {
+		if (!savefunc.hasSave())
+			return 0;
+		else {
+			startPlay(savefunc.getRound(), savefunc.getScore(),
+					savefunc.getGold(), savefunc.getDiff());
+			return 1;
+		}
+	}
+
+	/*
+	 * ²é¿´ÅÅĞĞ°ñ
+	 */
+	public ArrayList<Rank> getRank() {
+		return rankfunc.getRanks();
+	}
+
+	/*
+	 * ÉèÖÃ
+	 */
+	public void setDifficulty(int d) {
+		this.difficulty = d;
+	}
+
+	/*
+	 * ½øÈëÏÂÒ»¹Ø ¡¾ÓÃ»§¹ı¹Øºó£¬µ¯³ö¿òÏÔÊ¾¹ØÊı¡¢·ÖÊı¡¢½ğ±ÒÊıºó£¬µã»÷¡°½øÈëÏÂÒ»¹Ø¡±ºó£¬µ÷ÓÃ¡¿
+	 */
+	public void nextRound() {
+		score += NEXTROUND_INCRE;
+		gold += GOLD_INCRE;
+		roundNum++;
+		round = new Round(roundNum, dicFile);
+	}
+
+	/*
+	 * "Enter"¼ü
+	 * 
+	 * ×ÖÄ¸²Â¶Ô - ·µ»ØÎ»ÖÃ+99£¨RIGHT£© ×ÖÄ¸²Â¶Ô+½øÈëÏÂÒ»¹Ø - ·µ»ØÎ»ÖÃ+101£¨NEXTROUND£© ×ÖÄ¸²Â¶Ô+Í¨¹Ø+½øÈëÅÅĞĞ°ñ -
+	 * ·µ»ØÎ»ÖÃ+102£¨WIN_RANK£© ×ÖÄ¸²Â¶Ô+Í¨¹Ø+Î´½øÈëÅÅĞĞ°ñ - ·µ»ØÎ»ÖÃ+103£¨WIN_NORANK£© ×ÖÄ¸²Â´í -
+	 * ·µ»Ø-99£¨WRONG£© ×ÖÄ¸²Â´í+Ê§°Ü+½øÈëÅÅĞĞ°ñ - ·µ»Ø-101£¨FAIL_RANK£© ×ÖÄ¸²Â´í+Ê§°Ü+Î´½øÈëÅÅĞĞ°ñ -
+	 * ·µ»Ø-102£¨FAIL_NORANK£© ÊäÈëÖØ¸´×ÖÄ¸ - ·µ»Ø-1£¨RPT£© ÊäÈë¸ñÊ½²»ÕıÈ· - ·µ»Ø-2(ERROR)
+	 */
+	public ArrayList<Integer> guess(String c) {
+		c = c.toLowerCase();
+		ArrayList<Integer> pos = new ArrayList<Integer>();
+		// ÏÈÅĞ¶ÏÊäÈë¸ñÊ½
+		char[] cchar = c.toCharArray();
+		if ((cchar.length != 1) || (cchar[0] < 97) || (cchar[0] > 122)) {
+			status = ERROR;
+			return pos;
+		} else {
+			pos = round.guess(c);
+			status = round.getStatus();
+			switch (status) {
+			// ÒÑ¾­²Â¹ıÕâ¸ö×ÖÄ¸
+			case RPT:
+				break;
+			// ²Â¶Ô
+			case RIGHT:
+				score += RIGHT_INCRE;
+				break;
+			case RIGHT_NEXTROUND:
+				// ²Â¶Ô½øÈëÏÂÒ»¹Ø
+				if (roundNum != ALLROUND) {
+					score += RIGHT_INCRE;
+					// nextRound();
+					status = NEXTROUND;
+				} else {
+					// ²Â¶Ô²¢Í¨¹Ø²¢½øÈëÅÅĞĞ°ñ
+					if (rankfunc.canRank(score, roundNum)) {
+						score += RIGHT_INCRE;
+						status = WIN_RANK;
+					}
+					// ²Â¶Ô²¢Í¨¹ØÃ»ÓĞ½øÈëÅÅĞĞ°ñ
+					else {
+						score += RIGHT_INCRE;
+						status = WIN_NORANK;
+					}
+				}
+				break;
+			// ²Â´í
+			case WRONG:
+				score -= WRONG_DECRE;
+				break;
+			case FAIL:
+				// Ê§°Ü½øÈëÅÅĞĞ°ñ
+				if (rankfunc.canRank(score, roundNum)) {
+					score -= WRONG_DECRE;
+					status = FAIL_RANK;
+				}
+				// Ê§°ÜÃ»ÓĞ½øÈëÅÅĞĞ°ñ
+				else {
+					score -= WRONG_DECRE;
+					status = FAIL_NORANK;
+				}
+				break;
+			default:
+				break;
+			}
+		}
+
+		return pos;
+	}
+
+	/*
+	 * ÌáÊ¾ Èô½ğ±ÒÊı´óÓÚ1£¬·µ»Ø×ÖÄ¸ÒÔ¼°ÆäÎ»ÖÃ Èô½ğ±ÒÊı²»×ã£¬·µ»ØnullºÍ-1 ¡¾Íæ¼Òµã»÷¡°ÌáÊ¾¡±¡¿
+	 */
+	public CharPosition help(int index) {
+		CharPosition cp = new CharPosition();
+		// ½ğ±ÒÊı´óÓÚ1
+		if (gold >= 1) {
+			gold--;
+			score -= WRONG_DECRE;
+			cp = round.help(index);
+			guess(new Character(cp.c).toString());
+			return cp;
+		}
+		// ½ğ±ÒÊı²»×ã
+		else {
+			cp.c = (Character) null;
+			ArrayList<Integer> pos = new ArrayList<Integer>();
+			pos.add(-1);
+			cp.pos = pos;
+		}
+
 		return cp;
 	}
-	
+
 	/*
-	 * ä¿å­˜å¹¶é€€å‡º
-	 * */
-	public void saveAndExit(){
-		
+	 * ±£´æ²¢ÍË³ö
+	 */
+	public void saveAndExit() {
+		savefunc.saveGame("yes", roundNum, score, gold, difficulty);
 	}
-	
+
 	/*
-	 * ç»§ç»­æ¸¸æˆ
-	 * */
-	public void continueGame(){
-		
+	 * ¡¾ÄÜ¹»½øÈëÅÅĞĞ°ñµÄÓÃ»§ÊäÈë×Ô¼ºµÄĞÕÃûºó£¬µ÷ÓÃ¡¿
+	 */
+	public void getIntoRank(String user) {
+		rankfunc.getIntoRank(user, roundNum, score);
 	}
-	
-	/*
-	 * æŸ¥çœ‹æ’è¡Œæ¦œ
-	 * */
-	public ArrayList<Rank> getRank(){
-		ArrayList<Rank> ranks = new ArrayList<Rank>();
-		try {
-			FileReader reader = new FileReader(saveFile);
-			BufferedReader bufreader = new BufferedReader(reader);
-			String str = "";
-			try {
-				while((str = bufreader.readLine())!=null){
-					String name = str.split(",")[0];
-					int score = Integer.parseInt(str.split(",")[1]);
-					int roundNum = Integer.parseInt(str.split(",")[2]);
-					Rank rank = new Rank(name,score,roundNum);
-					ranks.add(rank);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		
-		return ranks;
+
+	public Round getRound() {
+		return this.round;
 	}
-	
-	
-	/*
-	 * è®¾ç½®
-	 * */
-	public void setDifficulty(){
-		
+
+	public int getRoundNum() {
+		return roundNum;
 	}
-	
-	/*
-	 * èƒ½å¤Ÿè¿›å…¥æ’è¡Œæ¦œçš„ç”¨æˆ·è¾“å…¥è‡ªå·±çš„å§“ååï¼Œè°ƒç”¨
-	 * */
-	public void getIntoRank(String user){
-		
+
+	public int getScore() {
+		return score;
 	}
-	
-	
-	
-	
-	
-	/*
-	 * æ ¹æ®åˆ†æ•°åˆ¤æ–­æ˜¯å¦è¿›å…¥æ’è¡Œæ¦œ
-	 * */
-	private boolean canRank(){
-		ranks = getRank();
-		//æ’è¡Œæ¦œä¸Šäººæ•°ä¸è¶³5
-		if(ranks.size()<5)
-			return true;
-		//æ’è¡Œæ¦œä¸Šå·²æœ‰5äºº
-		else{
-			int lastScore = ranks.get(ranks.size()-1).getScore();
-			int lastRoundNum = ranks.get(ranks.size()-1).getRoundNum();
-			//å½“å‰åˆ†æ•°ä¸æœ€åä¸€ååˆ†æ•°ç›¸åŒæ—¶ï¼Œæ¯”è¾ƒå…³æ•°
-			if(score==lastScore){
-				if(roundNum>=lastRoundNum)
-					return true;
-				else
-					return false;
-			}
-			//å½“å‰åˆ†æ•°æ¯”æœ€åä¸€ååˆ†æ•°é«˜
-			else if(score>lastScore)
-				return true;
-			else
-				return false;
-		}
+
+	public int getGold() {
+		return gold;
 	}
-	
-	private void startPlay(int roundNum, int score, int gold, int diff){
+
+	public int getDifficulty() {
+		return difficulty;
+	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	private void startPlay(int roundNum, int score, int gold, int diff) {
 		this.roundNum = roundNum;
 		this.score = score;
 		this.gold = gold;
 		this.difficulty = diff;
-		
+
 		score = INIT_SCORE;
 		gold = INIT_GOLD;
-		
-		switch(difficulty){
+
+		switch (difficulty) {
 		case LOW_DIFF:
 			dicFile = LOW_DICFILE;
 			break;
@@ -284,21 +266,8 @@ public class Game {
 			dicFile = LOW_DICFILE;
 			break;
 		}
-		
-		round = new Round(roundNum,dicFile);
+
+		round = new Round(roundNum, dicFile);
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
 }

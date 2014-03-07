@@ -14,16 +14,16 @@ public class Round {
 	final static int RIGHT_NEXTROUND = 100;
 	final static int WRONG = -99;
 
-	private int roundNum;// å…³æ•°ï¼Œç”¨äºå•è¯é•¿åº¦
-	private String dicFile;// å•è¯æœ¬æ–‡ä»¶å
+	private int roundNum;// ¹ØÊı£¬ÓÃÓÚµ¥´Ê³¤¶È
+	private String dicFile;// µ¥´Ê±¾ÎÄ¼şÃû
 
 	private String correctWord;
 	private String correctExplain;
 	private int life;
-	private ArrayList<Character> guessedChar;// æ‰€æœ‰çŒœè¿‡çš„å­—æ¯
-	private ArrayList<Character> wrongChar;// æ‰€æœ‰çŒœé”™çš„å­—æ¯
-	private String guessedWord = "";// å·²ç»çŒœå‡ºçš„å•è¯
-	private boolean ifWin;
+	private ArrayList<Character> guessedChar;// ËùÓĞ²Â¹ıµÄ×ÖÄ¸
+	private ArrayList<Character> wrongChar;// ËùÓĞ²Â´íµÄ×ÖÄ¸
+	private String guessedWord = "";// ÒÑ¾­²Â³öµÄµ¥´Ê
+	private int status;
 
 	private ArrayList<String> wordBand = new ArrayList<String>();
 	private ArrayList<String> explainBand = new ArrayList<String>();
@@ -37,47 +37,41 @@ public class Round {
 
 		// select a word to guess form word band
 		initializeCorrectWord(roundNum);
-		
-		System.out.println(correctWord);
-		
-		//initialize other variables
+
+		// System.out.println(correctWord);
+
+		// initialize other variables
 		life = 6;
 		guessedChar = new ArrayList<Character>();
 		wrongChar = new ArrayList<Character>();
-		for(int i = 0; i<correctWord.length();i++)
+		for (int i = 0; i < correctWord.length(); i++)
 			guessedWord = guessedWord.concat("_");
-		ifWin = false;
-		
+
 	}
 
 	/*
-	 * è¿™ä¸ªå­—æ¯ä¹‹å‰å·²ç»çŒœè¿‡ - è¿”å›-1ï¼ˆRPTï¼‰
-	 * çŒœå¯¹ - è¿”å›è¯¥å­—æ¯ä½ç½® + 99 
-	 * çŒœé”™ - -99 
-	 * çŒœå¯¹å¹¶è¿‡å…³ - è¿”å›è¯¥å­—æ¯ä½ç½®å’Œä¸€ä¸ª100ï¼ˆWINï¼‰ 
-	 * çŒœé”™å¹¶å¤±è´¥ - è¿”å›-100ï¼ˆFAILï¼‰
-	 * (é»˜è®¤cæ˜¯ä¸€ä¸ªå­—æ¯ï¼Œå³é•¿åº¦ä¸º1)
+	 * Õâ¸ö×ÖÄ¸Ö®Ç°ÒÑ¾­²Â¹ı - ·µ»Ø-1£¨RPT£© ²Â¶Ô - ·µ»Ø¸Ã×ÖÄ¸Î»ÖÃ + 99 ²Â´í - -99 ²Â¶Ô²¢¹ı¹Ø -
+	 * ·µ»Ø¸Ã×ÖÄ¸Î»ÖÃºÍÒ»¸ö100£¨WIN£© ²Â´í²¢Ê§°Ü - ·µ»Ø-100£¨FAIL£© (Ä¬ÈÏcÊÇÒ»¸ö×ÖÄ¸£¬¼´³¤¶ÈÎª1)
 	 */
 	public ArrayList<Integer> guess(String c) {
 		ArrayList<Integer> pos = new ArrayList<Integer>();
 		char c_char = c.toCharArray()[0];
-		
-		//å¦‚æœè¿™ä¸ªå­—æ¯ä¹‹å‰å·²ç»çŒœè¿‡
-		if(guessedChar.contains(c_char)){
+
+		// Èç¹ûÕâ¸ö×ÖÄ¸Ö®Ç°ÒÑ¾­²Â¹ı
+		if (guessedChar.contains(c_char)) {
 			pos.add(RPT);
 			return pos;
-		}
-		else{
-			//å°†è¿™ä¸ªå­—æ¯åŠ å…¥guessedCharä¸­
+		} else {
+			// ½«Õâ¸ö×ÖÄ¸¼ÓÈëguessedCharÖĞ
 			guessedChar.add(c_char);
-			
-			//åˆ¤æ–­æ˜¯å¦çŒœå¯¹
+
+			// ÅĞ¶ÏÊÇ·ñ²Â¶Ô
 			boolean hit = false;
-			
+
 			char[] correctWordChar = correctWord.toCharArray();
-			for(int i = 0; i < correctWord.length(); i++){
-				//çŒœå¯¹
-				if(correctWordChar[i]==c_char){
+			for (int i = 0; i < correctWord.length(); i++) {
+				// ²Â¶Ô
+				if (correctWordChar[i] == c_char) {
 					pos.add(i);
 					StringBuffer bufguessedWord = new StringBuffer(guessedWord);
 					bufguessedWord.setCharAt(i, c_char);
@@ -85,66 +79,61 @@ public class Round {
 					hit = true;
 				}
 			}
-			
-//			System.out.println(guessedWord);
-			
-			//çŒœé”™
-			if(!hit){
+
+			// ²Â´í
+			if (!hit) {
 				life--;
 				wrongChar.add(c_char);
-				//çŒœé”™å¹¶å¤±è´¥
-				if(life == 0){
-					pos.add(FAIL);
+				// ²Â´í²¢Ê§°Ü
+				if (life == 0) {
+					status = FAIL;
 					return pos;
 				}
-				//çŒœé”™è¿˜æ²¡å¤±è´¥
+				// ²Â´í»¹Ã»Ê§°Ü
 				else {
-					pos.add(WRONG);
+					status = WRONG;
 					return pos;
 				}
 			}
-			//çŒœå¯¹
-			else{
-				//çŒœå¯¹å¹¶é€šå…³
-				if(guessedWord.equals(correctWord)){
-					pos.add(RIGHT_NEXTROUND);
-					ifWin = true;
+			// ²Â¶Ô
+			else {
+				// ²Â¶Ô²¢Í¨¹Ø
+				if (guessedWord.equals(correctWord)) {
+					status = RIGHT_NEXTROUND;
 					return pos;
 				}
-				//çŒœå¯¹æ²¡é€šå…³
+				// ²Â¶ÔÃ»Í¨¹Ø
 				else {
-					pos.add(RIGHT);
+					status = RIGHT;
 					return pos;
 				}
 			}
 		}
-		
-		
+
 	}
-	
+
 	/*
-	 * éšæœºç»™å‡ºä¸€ä¸ªå­—æ¯çš„æç¤º
+	 * ¸ø³öÒ»¸ö×ÖÄ¸µÄÌáÊ¾
 	 */
-	public CharPosition help() {
+	public CharPosition help(int index) {
 		CharPosition cp = new CharPosition();
-		
-		//éšæœºäº§ç”Ÿå‡ºä¸€ä¸ªæç¤ºçš„å­—æ¯ï¼Œç¡®ä¿è¯¥å­—æ¯ä¸åœ¨å·²ç»çŒœè¿‡çš„å­—æ¯å½“ä¸­
-		char hintChar;
-		char[] correctWordChar = correctWord.toCharArray();
-		do{
-			Random rand = new Random();
-			int r = rand.nextInt(correctWord.length());
-			hintChar = correctWordChar[r];
-		} while(guessedChar.contains(hintChar));
-		
-		
+
+		// Ëæ»ú²úÉú³öÒ»¸öÌáÊ¾µÄ×ÖÄ¸£¬È·±£¸Ã×ÖÄ¸²»ÔÚÒÑ¾­²Â¹ıµÄ×ÖÄ¸µ±ÖĞ
+		char hintChar = correctWord.charAt(index);
+		// char[] correctWordChar = correctWord.toCharArray();
+		// do {
+		// Random rand = new Random();
+		// int r = rand.nextInt(correctWord.length());
+		// hintChar = correctWordChar[r];
+		// } while (guessedChar.contains(hintChar));
+
+		// ÕÒµ½¸Ã×ÖÄ¸ËùÓĞÎ»ÖÃ
 		cp.c = hintChar;
-		for(int i =0; i<correctWord.length();i++){
-			if(correctWordChar[i]==hintChar){
+		for (int i = 0; i < correctWord.length(); i++) {
+			if (correctWord.charAt(index) == hintChar) {
 				cp.pos.add(i);
 			}
 		}
-		
 		return cp;
 	}
 
@@ -164,13 +153,12 @@ public class Round {
 		return guessedWord;
 	}
 
-	public boolean isIfWin() {
-		return ifWin;
+	public int getStatus() {
+		return status;
 	}
 
-
 	/*
-	 * è¯»å–è¯åº“
+	 * ¶ÁÈ¡´Ê¿â
 	 */
 	private void loadDictionary(String dicFile) {
 		try {
@@ -192,8 +180,8 @@ public class Round {
 	}
 
 	/*
-	 * ä»è¯åº“ä¸­é€‰æ‹©ä¸€ä¸ªç›¸åº”é•¿åº¦çš„å•è¯
-	 * */
+	 * ´Ó´Ê¿âÖĞÑ¡ÔñÒ»¸öÏàÓ¦³¤¶ÈµÄµ¥´Ê
+	 */
 	private void initializeCorrectWord(int roundNum) {
 		int wordLength = roundNum + 2;
 
